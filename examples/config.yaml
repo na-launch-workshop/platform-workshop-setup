@@ -41,8 +41,8 @@ openshift:
         chart:
           enabled: true
           name: orchestrator
-          version: 0.0.90
-          repo: https://poc-examples.github.io/charts
+          version: 1.0.0
+          repo: https://na-launch-workshop.github.io/platform-charts
           settings:
             role: shared
             stage: dev
