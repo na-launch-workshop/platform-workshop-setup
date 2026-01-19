@@ -17,6 +17,23 @@ TODO: Writeup of instructions on using the cluster-bootstrapper to build a clust
 For ease of deployment with this workshop, you can bring your own OpenShift 4 cluster by ordering "AWS with ROSA Open Environment"
 from [demo.redhat.com](https://demo.redhat.com).
 
+The provisioned cluster needs to be scaled up to accommodate the myriad of operators installed in this workshop.  Thus, you can follow
+these instructions to provision additional nodes.
+
+Log into the provided bastion which is set up for rosa cli.  Then scale up machinepool as follows:
+  ```sh
+  $ rosa list cluster
+  ID                                NAME        STATE  TOPOLOGY
+  2ntuf3b1gnkousjpu38loltvsc8f42u8  rosa-4rctx  ready  Hosted CP
+  
+  $ rosa list machinepool --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
+  ID       AUTOSCALING  REPLICAS  INSTANCE TYPE  LABELS    TAINTS    AVAILABILITY ZONE  SUBNET                    DISK SIZE  VERSION  AUTOREPAIR  
+  workers  No           3/3       m6a.xlarge                         us-east-2a         subnet-060b4677ab2a34bdf  300 GiB    4.17.45  Yes         
+  
+  $ rosa edit machinepool --replicas=3 workers --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
+  I: Updated machine pool 'workers' on hosted cluster '2ntuf3b1gnkousjpu38loltvsc8f42u8'
+  ```
+
 ### Architecture
 
 The workshop is deployed in two phases:
@@ -69,12 +86,14 @@ The domain is name of your cluster domain (i.e. your OpenShift API endpoint is h
       domain: rosa-abcde.subdomain.openshiftapps.com
   ```
 
-You will need to obtain a ROSA token.  If you are using "AWS with ROSA Open Environment", you can log into the provided bastion which
+You will need to obtain a ROSA token.  If you are using demo.redhat.com's "AWS with ROSA Open Environment", you can log into the provided bastion which
 is set up for rosa cli (this is from demo.redhat.com, not your own ROSA token):
 
   ```sh
   rosa token --generate
   ```
+Otherwise, you can obtain a token from the [Hybrid Cloud Console](https://console.redhat.com/openshift/token/rosa).  Red Hat recommends using Red Hat SSO
+to authenticate against OCM, but we need to use API tokens for specific components.  See the "Still need access to API tokens to authenticate?" note to obtain a token.
 
 Update the AWS and ROSA credentials:
   ```yaml
