@@ -1,0 +1,48 @@
+openshift:
+
+  credentials:
+
+    ## Allows Keycloak User Autoregistration
+    registrationAllowed: true
+
+    ## CLUSTER LOGIN FOR CONFIGURATION
+    admin:
+      username: # rosa_openshift_admin_user
+      password: # rosa_openshift_admin_password
+
+    ## Creates Initial Users & Binds them to a group in Keycloak
+    users:
+      - username: "admin"
+        password: "redhat"
+        group: "cluster-admins"
+
+    # Will Adjust Later for OIDC
+    # But currently need a fast solution
+    vault:
+      token: "vaultcredential"
+
+  clusters:
+
+    - name: rosa-abcde # "rosa-" + guid
+      type: hcp # local, hcp, rosa, aro, ocp
+      create: false
+      domain: rosa-abcde.subdomain.openshiftapps.com # the subdomain portion of rosa_openshift_api_url
+      port: 443
+    # Commented out as we won't need to provision a new cluster
+    # version: 4.16.30
+    # compute:
+    #   workers: 6
+      providerCredentials:
+        aws_access_key_id: "" # aws_access_key_id
+        aws_secret_access_key: "" # aws_secret_access_key
+        region: "us-east-2"
+        rosa_token: ""
+      workshop:
+        chart:
+          enabled: true
+          name: orchestrator
+          version: 0.0.90
+          repo: https://poc-examples.github.io/charts
+          settings:
+            role: shared
+            stage: dev
