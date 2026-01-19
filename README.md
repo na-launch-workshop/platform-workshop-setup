@@ -101,6 +101,11 @@ Update the version of the chart as needed.  The latest published version can be 
   make configure
   ```
 
+You can check the progress of ArgoCD reconciliation by logging into OpenShift GitOps with the `admin` user and its password from this command:
+  ```sh
+  oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}'|base64 --decode
+  ```
+
 The setup files can be [found here](https://github.com/na-launch-workshop/platform-charts/tree/main/charts/developer_hub/templates) and
 toggling on/off individual operators can be [found here](https://github.com/na-launch-workshop/platform-ansible-collections/blob/c5dddfd53af223604856f79811a0d504dc8e404f/bootstrap/workshop/roles/gitops-instance/tasks/main.yaml#L493).
 

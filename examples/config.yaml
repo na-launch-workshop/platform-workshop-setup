@@ -36,7 +36,7 @@ openshift:
         aws_access_key_id: "" # aws_access_key_id
         aws_secret_access_key: "" # aws_secret_access_key
         region: "us-east-2"
-        rosa_token: ""
+        rosa_token: "" # https://console.redhat.com/openshift/token/rosa
       workshop:
         chart:
           enabled: true
