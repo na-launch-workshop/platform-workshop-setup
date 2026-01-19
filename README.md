@@ -70,7 +70,7 @@ The domain is name of your cluster domain (i.e. your OpenShift API endpoint is h
   ```
 
 You will need to obtain a ROSA token.  If you are using "AWS with ROSA Open Environment", you can log into the provided bastion which
-is set up for rosa cli:
+is set up for rosa cli (this is from demo.redhat.com, not your own ROSA token):
 
   ```sh
   rosa token --generate
