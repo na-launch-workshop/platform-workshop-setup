@@ -1,0 +1,8 @@
+site_name: "Red Hat Launch Workshop Setup"
+site_description: "Red Hat Launch Workshop Setup"
+
+nav:
+  - Home: index.md
+
+plugins:
+  - techdocs-core
