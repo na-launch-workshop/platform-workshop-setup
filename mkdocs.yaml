@@ -1,5 +1,5 @@
 site_name: "Red Hat Launch Workshop Setup"
-site_description: "Red Hat Launch Workshop Setup"
+site_description: "Home"
 
 nav:
   - Home: index.md

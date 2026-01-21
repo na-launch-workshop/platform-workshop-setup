@@ -1,4 +1,4 @@
-# Developer Experience Workshop Setup
+# Red Hat Launch Workshop - Setup
 
 This repository contains the setup instructions to build the Red Hat Launch Workshop.  The workshop module content
 is prefixed with `workshop-` and available in [this repository](https://github.com/orgs/na-launch-workshop/repositories).
