@@ -7,14 +7,14 @@ openshift:
 
     ## CLUSTER LOGIN FOR CONFIGURATION
     admin:
-      username: # rosa_openshift_admin_user
+      username: cluster-admin # rosa_openshift_admin_user
       password: # rosa_openshift_admin_password
 
     ## Creates Initial Users & Binds them to a group in Keycloak
     users:
       - username: "admin"
         password: "redhat"
-        group: "cluster-admins"
+        group: "workshop-admins"
 
     # Will Adjust Later for OIDC
     # But currently need a fast solution
@@ -26,7 +26,7 @@ openshift:
     - name: rosa-abcde # "rosa-" + guid
       type: hcp # local, hcp, rosa, aro, ocp
       create: false
-      domain: rosa-abcde.subdomain.openshiftapps.com # the subdomain portion of rosa_openshift_api_url
+      domain: rosa-abcde.fghi.p3.openshiftapps.com # the subdomain portion of rosa_openshift_api_url
       port: 443
     # Commented out as we won't need to provision a new cluster
     # version: 4.16.30
@@ -36,13 +36,13 @@ openshift:
         aws_access_key_id: "" # aws_access_key_id
         aws_secret_access_key: "" # aws_secret_access_key
         region: "us-east-2"
-        rosa_token: ""
+        rosa_token: "" # obtained with rosa token --generate
       workshop:
         chart:
           enabled: true
           name: orchestrator
-          version: 1.0.0
+          version: 1.0.4
           repo: https://na-launch-workshop.github.io/platform-charts
           settings:
-            role: shared
+            role: workload
             stage: dev

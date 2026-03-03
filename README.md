@@ -10,12 +10,13 @@ supports both building new clusters and bringing your own cluster.
 
 ### Build Your Cluster
 
-TODO: Writeup of instructions on using the cluster-bootstrapper to build a cluster.
+The platform-cluster-bootstrapper repository can be configured to provision a cluster, see [README.md](https://github.com/na-launch-workshop/platform-cluster-bootstrapper/blob/main/README.md).
+This is out of scope for the workshop.
 
 ### Bring Your Own Cluster
 
 For ease of deployment with this workshop, you can bring your own OpenShift 4 cluster by ordering "AWS with ROSA Open Environment"
-from [demo.redhat.com](https://demo.redhat.com).
+from [demo.redhat.com](https://demo.redhat.com). When ordering this catalog item, select "Set up cluster admin in ROSA".
 
 ### Architecture
 
@@ -34,7 +35,7 @@ The workshop infrastructure Helm charts deploy the following operators:
 - Red Hat Single Sign-On (Keycloak)
 - Vault
 - External Secrets
-- GitLab (self-hosted)
+- GitLab and/or Gitea self-hosted Git repositories
 - Red Hat Developer Hub
 
 #### 2. [Workshop Template](#deploy-workshop-template)
@@ -64,9 +65,9 @@ For ROSA and HCP installations, the name is the domain prefix of your cluster in
     - name: rosa-abcde
   ```
 
-The domain is name of your cluster domain (i.e. your OpenShift API endpoint is https://api.rosa-abcde.subdomain.openshiftapps.com)
+The domain is name of your cluster domain (i.e. your OpenShift API endpoint is https://api.rosa-abcde.fghi.p3.openshiftapps.com)
   ```yaml
-      domain: rosa-abcde.subdomain.openshiftapps.com
+      domain: rosa-abcde.fghi.p3.openshiftapps.com
   ```
 
 You will need to obtain a ROSA token.  If you are using demo.redhat.com's "AWS with ROSA Open Environment", you can log into the provided bastion which
@@ -93,11 +94,11 @@ Update the version of the chart as needed.  The latest published version can be 
         chart:
           enabled: true
           name: orchestrator
-          version: 0.0.90
+          version: 1.0.3
   ```
 
-  To install the workshop infrastructure components and configure Developer Hub plugins to access those components (i.e. GitLab,
-  OpenShift GitOps, ...), run:
+To install the workshop infrastructure components and configure Developer Hub plugins to access those components (i.e. GitLab,
+OpenShift GitOps, ...), run:
 
   ```sh
   make configure
@@ -107,6 +108,8 @@ You can check the progress of ArgoCD reconciliation by logging into OpenShift Gi
   ```sh
   oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}'|base64 --decode
   ```
+
+**_NOTE: If the GitLab Operator is deployed, its InstallPlan is set to Manual approval due to frequent releases and backward compatibility issues.  Please approve the InstallPlan manually._**
 
 The setup files can be [found here](https://github.com/na-launch-workshop/platform-charts/tree/main/charts/developer_hub/templates) and
 toggling on/off individual operators can be [found here](https://github.com/na-launch-workshop/platform-ansible-collections/blob/c5dddfd53af223604856f79811a0d504dc8e404f/bootstrap/workshop/roles/gitops-instance/tasks/main.yaml#L493).
@@ -132,15 +135,15 @@ in this workshop.  Thus, you can follow these instructions to provision addition
 
 Log into the provided bastion which is set up for rosa cli.  Then scale up machinepool as follows:
   ```sh 
-  $ rosa list cluster
+  rosa list cluster
   ID                                NAME        STATE  TOPOLOGY
   2ntuf3b1gnkousjpu38loltvsc8f42u8  rosa-4rctx  ready  Hosted CP
   
-  $ rosa list machinepool --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
+  rosa list machinepool --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
   ID       AUTOSCALING  REPLICAS  INSTANCE TYPE  LABELS    TAINTS    AVAILABILITY ZONE  SUBNET                    DISK SIZE  VERSION  AUTOREPAIR
-  workers  No           3/3       m6a.xlarge                         us-east-2a         subnet-060b4677ab2a34bdf  300 GiB    4.17.45  Yes
+  workers  No           2/2       m6a.xlarge                         us-east-2a         subnet-060b4677ab2a34bdf  300 GiB    4.17.45  Yes
 
-  $ rosa edit machinepool --replicas=3 workers --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
+  rosa edit machinepool --replicas=4 workers --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
   I: Updated machine pool 'workers' on hosted cluster '2ntuf3b1gnkousjpu38loltvsc8f42u8'
   ```
 
