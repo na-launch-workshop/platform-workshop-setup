@@ -106,7 +106,7 @@ OpenShift GitOps, ...), run:
 
 You can check the progress of ArgoCD reconciliation by logging into OpenShift GitOps with the `admin` user and its password from this command:
   ```sh
-  oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}'|base64 --decode
+  oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}'|base64 --decode; echo
   ```
 
 **_NOTE: If the GitLab Operator is deployed, its InstallPlan is set to Manual approval due to frequent releases and backward compatibility issues.  Please approve the InstallPlan manually._**
@@ -169,8 +169,8 @@ Administrators may need to access Keycloak to further configure the workshop.  T
 
 The configured username and password can be accessed as follows:
   ```sh
-  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_USERNAME}'|base64 --decode
-  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_PASSWORD}'|base64 --decode
+  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_USERNAME}{"\n"}'|base64 --decode; echo
+  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_PASSWORD}{"\n"}'|base64 --decode; echo
   ```
 
 ## Workshop Modules
@@ -181,16 +181,35 @@ instance in the workshop cluster.
 
 ### Adding Module Content
 
-The workshop modules can be hosted in Developer Hub's TechDocs for end users to view.  These modules are imported into GitLab as
-follows:
+The workshop modules can be hosted in Developer Hub's TechDocs for end users to view.
 
-1. The GitLab repository that was deployed contains a root user that can import Git repositories from external GitHub.  Log in with the
-root GitLab user (the password can be found in `oc get secret gitlab-gitlab-initial-root-password -n gitlab-system -o yaml`)
+#### GitLab
+
+The following are instructions to import workshop modules (Git repositories) into self-hosted GitLab:
+
+1. The GitLab repository that was deployed contains a root user that can import Git repositories from external GitHub.  Log in with the GitLab user named
+`root` and the password obtained as follows:
+  ```sh
+  oc get secret gitlab-gitlab-initial-root-password -n gitlab-system -o jsonpath='{.data.password}{"\n"}'|base64 --decode; echo
+  ```
 2. [Configure GitHub](https://docs.gitlab.com/administration/settings/import_and_export_settings/#configure-allowed-import-sources) as
 an allowed import source to GitLab self-managed.
 3. In GitLab, navigate to the developers group which is an appropriate RBAC role for end users to view but not merge module content to
 the main branch.  Create a new project -> Import project -> Import from GitHub.  Import any of the modules from the content library above.
 4. Developer Hub automatically detects valid catalog-info.yaml files from the accompanying repositories and imports them and their
+TechDocs content.
+
+#### Gitea
+
+The following are instructions to import workshop modules (Git repositories) into self-hosted Gitea:
+
+1. The Gitea deployment contains an admin user that can import Git repositories from external GitHub.  Log in with the Gitea username and password obtained as follows:
+  ```sh
+  oc get deployment gitea-service -n gitea -o jsonpath='{.spec.template.spec.initContainers[*].env[?(@.name=="GITEA_ADMIN_USERNAME")].value}{"\n"}'
+  oc get deployment gitea-service -n gitea -o jsonpath='{.spec.template.spec.initContainers[*].env[?(@.name=="GITEA_ADMIN_PASSWORD")].value}{"\n"}'
+  ```
+2. In Gitea, press the `+` button on the top right to create a New Migration and select GitHub.  Copy the Git clone URL from your desired workshop repository.
+3. Developer Hub automatically detects valid catalog-info.yaml files from the accompanying repositories and imports them and their
 TechDocs content.
 
 ## Updates
