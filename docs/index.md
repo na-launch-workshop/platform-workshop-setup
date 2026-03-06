@@ -10,14 +10,22 @@ supports both building new clusters and bringing your own cluster.
 
 ### Build Your Cluster
 
-TODO: Writeup of instructions on using the cluster-bootstrapper to build a cluster.
+The platform-cluster-bootstrapper repository can be configured to provision a cluster, see [README.md](https://github.com/na-launch-workshop/platform-cluster-bootstrapper/blob/main/README.md).
+This is out of scope for the workshop.
 
 ### Bring Your Own Cluster
 
 For ease of deployment with this workshop, you can bring your own OpenShift 4 cluster by ordering "AWS with ROSA Open Environment"
-from [demo.redhat.com](https://demo.redhat.com).
+from [demo.redhat.com](https://demo.redhat.com). When ordering this catalog item, select "Set up cluster admin in ROSA".
 
 ### Architecture
+
+<details>
+<summary>🤫 What's this??</summary>
+
+### 🥚 You found an easter egg!
+
+</details>
 
 The workshop is deployed in two phases:
 
@@ -34,7 +42,7 @@ The workshop infrastructure Helm charts deploy the following operators:
 - Red Hat Single Sign-On (Keycloak)
 - Vault
 - External Secrets
-- GitLab (self-hosted)
+- GitLab and/or Gitea self-hosted Git repositories
 - Red Hat Developer Hub
 
 #### 2. [Workshop Template](#deploy-workshop-template)
@@ -64,9 +72,9 @@ For ROSA and HCP installations, the name is the domain prefix of your cluster in
     - name: rosa-abcde
   ```
 
-The domain is name of your cluster domain (i.e. your OpenShift API endpoint is https://api.rosa-abcde.subdomain.openshiftapps.com)
+The domain is name of your cluster domain (i.e. your OpenShift API endpoint is https://api.rosa-abcde.fghi.p3.openshiftapps.com)
   ```yaml
-      domain: rosa-abcde.subdomain.openshiftapps.com
+      domain: rosa-abcde.fghi.p3.openshiftapps.com
   ```
 
 You will need to obtain a ROSA token.  If you are using demo.redhat.com's "AWS with ROSA Open Environment", you can log into the provided bastion which
@@ -93,11 +101,11 @@ Update the version of the chart as needed.  The latest published version can be 
         chart:
           enabled: true
           name: orchestrator
-          version: 0.0.90
+          version: 1.0.3
   ```
 
-  To install the workshop infrastructure components and configure Developer Hub plugins to access those components (i.e. GitLab,
-  OpenShift GitOps, ...), run:
+To install the workshop infrastructure components and configure Developer Hub plugins to access those components (i.e. GitLab,
+OpenShift GitOps, ...), run:
 
   ```sh
   make configure
@@ -105,8 +113,10 @@ Update the version of the chart as needed.  The latest published version can be 
 
 You can check the progress of ArgoCD reconciliation by logging into OpenShift GitOps with the `admin` user and its password from this command:
   ```sh
-  oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}'|base64 --decode
+  oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}'|base64 --decode; echo
   ```
+
+**_NOTE: If the GitLab Operator is deployed, its InstallPlan is set to Manual approval due to frequent releases and backward compatibility issues.  Please approve the InstallPlan manually._**
 
 The setup files can be [found here](https://github.com/na-launch-workshop/platform-charts/tree/main/charts/developer_hub/templates) and
 toggling on/off individual operators can be [found here](https://github.com/na-launch-workshop/platform-ansible-collections/blob/c5dddfd53af223604856f79811a0d504dc8e404f/bootstrap/workshop/roles/gitops-instance/tasks/main.yaml#L493).
@@ -132,15 +142,15 @@ in this workshop.  Thus, you can follow these instructions to provision addition
 
 Log into the provided bastion which is set up for rosa cli.  Then scale up machinepool as follows:
   ```sh 
-  $ rosa list cluster
+  rosa list cluster
   ID                                NAME        STATE  TOPOLOGY
   2ntuf3b1gnkousjpu38loltvsc8f42u8  rosa-4rctx  ready  Hosted CP
   
-  $ rosa list machinepool --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
+  rosa list machinepool --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
   ID       AUTOSCALING  REPLICAS  INSTANCE TYPE  LABELS    TAINTS    AVAILABILITY ZONE  SUBNET                    DISK SIZE  VERSION  AUTOREPAIR
-  workers  No           3/3       m6a.xlarge                         us-east-2a         subnet-060b4677ab2a34bdf  300 GiB    4.17.45  Yes
+  workers  No           2/2       m6a.xlarge                         us-east-2a         subnet-060b4677ab2a34bdf  300 GiB    4.17.45  Yes
 
-  $ rosa edit machinepool --replicas=3 workers --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
+  rosa edit machinepool --replicas=4 workers --cluster=2ntuf3b1gnkousjpu38loltvsc8f42u8
   I: Updated machine pool 'workers' on hosted cluster '2ntuf3b1gnkousjpu38loltvsc8f42u8'
   ```
 
@@ -166,8 +176,8 @@ Administrators may need to access Keycloak to further configure the workshop.  T
 
 The configured username and password can be accessed as follows:
   ```sh
-  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_USERNAME}'|base64 --decode
-  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_PASSWORD}'|base64 --decode
+  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_USERNAME}{"\n"}'|base64 --decode; echo
+  oc get secret credential-keycloak -n keycloak -o jsonpath='{.data.ADMIN_PASSWORD}{"\n"}'|base64 --decode; echo
   ```
 
 ## Workshop Modules
@@ -178,16 +188,35 @@ instance in the workshop cluster.
 
 ### Adding Module Content
 
-The workshop modules can be hosted in Developer Hub's TechDocs for end users to view.  These modules are imported into GitLab as
-follows:
+The workshop modules can be hosted in Developer Hub's TechDocs for end users to view.
 
-1. The GitLab repository that was deployed contains a root user that can import Git repositories from external GitHub.  Log in with the
-root GitLab user (the password can be found in `oc get secret gitlab-gitlab-initial-root-password -n gitlab-system -o yaml`)
+#### GitLab
+
+The following are instructions to import workshop modules (Git repositories) into self-hosted GitLab:
+
+1. The GitLab repository that was deployed contains a root user that can import Git repositories from external GitHub.  Log in with the GitLab user named
+`root` and the password obtained as follows:
+  ```sh
+  oc get secret gitlab-gitlab-initial-root-password -n gitlab-system -o jsonpath='{.data.password}{"\n"}'|base64 --decode; echo
+  ```
 2. [Configure GitHub](https://docs.gitlab.com/administration/settings/import_and_export_settings/#configure-allowed-import-sources) as
 an allowed import source to GitLab self-managed.
 3. In GitLab, navigate to the developers group which is an appropriate RBAC role for end users to view but not merge module content to
 the main branch.  Create a new project -> Import project -> Import from GitHub.  Import any of the modules from the content library above.
 4. Developer Hub automatically detects valid catalog-info.yaml files from the accompanying repositories and imports them and their
+TechDocs content.
+
+#### Gitea
+
+The following are instructions to import workshop modules (Git repositories) into self-hosted Gitea:
+
+1. The Gitea deployment contains an admin user that can import Git repositories from external GitHub.  Log in with the Gitea username and password obtained as follows:
+  ```sh
+  oc get deployment gitea-service -n gitea -o jsonpath='{.spec.template.spec.initContainers[*].env[?(@.name=="GITEA_ADMIN_USERNAME")].value}{"\n"}'
+  oc get deployment gitea-service -n gitea -o jsonpath='{.spec.template.spec.initContainers[*].env[?(@.name=="GITEA_ADMIN_PASSWORD")].value}{"\n"}'
+  ```
+2. In Gitea, press the `+` button on the top right to create a New Migration and select GitHub.  Copy the Git clone URL from your desired workshop repository.
+3. Developer Hub automatically detects valid catalog-info.yaml files from the accompanying repositories and imports them and their
 TechDocs content.
 
 ## Updates

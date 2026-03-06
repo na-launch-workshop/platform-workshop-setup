@@ -20,6 +20,13 @@ from [demo.redhat.com](https://demo.redhat.com). When ordering this catalog item
 
 ### Architecture
 
+<details>
+<summary>🤫 What's this??</summary>
+
+### 🥚 You found an easter egg!
+
+</details>
+
 The workshop is deployed in two phases:
 
 #### 1. [Workshop Infrastructure](#deploy-workshop-infrastructure)
